@@ -23,6 +23,7 @@ struct CatSheet {
 
     init?(path: String, scale: CGFloat) {
         guard let img = NSImage(contentsOfFile: path), let rep = img.representations.first as? NSBitmapImageRep else { return nil }
+        img.size = NSSize(width: rep.pixelsWide, height: rep.pixelsHigh)
         let rowsInSheet = rep.pixelsHigh / Int(CatSheet.cell)
         spriteSize = NSSize(width: CatSheet.crop.width * scale, height: CatSheet.crop.height * scale)
         func cut(_ row: Row) -> [NSImage]? {

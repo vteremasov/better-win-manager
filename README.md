@@ -12,11 +12,28 @@ Column-based tiling window manager for macOS. Tile windows by ⌥-dragging them 
 
 ## Install
 
+### Homebrew (recommended)
+
+Install directly via Homebrew Cask:
+
+```sh
+brew install --cask nanot1m/better-win-manager/betterwm
+```
+
+Or tap the repository first:
+
+```sh
+brew tap nanot1m/better-win-manager
+brew install --cask betterwm
+```
+
+> The cask automatically clears the `com.apple.quarantine` attribute during installation (`postflight_steps`), preventing Gatekeeper from blocking the ad-hoc signed binary on first launch. You can also pass `--no-quarantine` directly to `brew install`.
+
 ### From a release
 
 Download `BetterWM-x.y.z.zip` from [Releases](https://github.com/nanot1m/better-win-manager/releases), unzip, and move `BetterWM.app` to Applications.
 
-Releases are ad-hoc signed, not notarized, so Gatekeeper blocks the first launch. Either right-click the app and choose Open, or clear the quarantine flag:
+Releases are ad-hoc signed, not notarized, so Gatekeeper blocks the first launch if downloaded via a browser. Either right-click the app and choose Open, or clear the quarantine flag:
 
 ```sh
 xattr -dr com.apple.quarantine /Applications/BetterWM.app
