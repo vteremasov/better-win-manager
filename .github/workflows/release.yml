@@ -22,7 +22,10 @@ jobs:
         run: |
           # Release notes come from CHANGELOG.md when it has a section for this version; otherwise GitHub generates them.
           v="${GITHUB_REF_NAME#v}"
-          if awk -v v="$v" '/^## \[/{p = index($0, "[" v "]") > 0} p' CHANGELOG.md | sed '1d' | grep -q .; then
+          # Re-running the workflow must not fail on an existing release: refresh its asset instead.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber
+          elif awk -v v="$v" '/^## \[/{p = index($0, "[" v "]") > 0} p' CHANGELOG.md | sed '1d' | grep -q .; then
             awk -v v="$v" '/^## \[/{p = index($0, "[" v "]") > 0} p' CHANGELOG.md | sed '1d' > notes.md
             gh release create "$GITHUB_REF_NAME" dist/*.zip Casks/betterwm.rb --notes-file notes.md --title "BetterWM $v"
           else
@@ -35,3 +38,17 @@ jobs:
           git add Casks/betterwm.rb
           git commit -m "Update Homebrew Cask to ${GITHUB_REF_NAME}" || true
           git push origin HEAD:main || true
+      - name: Update Homebrew tap
+        # Needs a TAP_TOKEN secret: a fine-grained PAT with contents read/write on nanot1m/homebrew-tap.
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then echo "TAP_TOKEN not set; skipping tap update"; exit 0; fi
+          v="${GITHUB_REF_NAME#v}"
+          sha=$(shasum -a 256 dist/BetterWM-"$v".zip | cut -d' ' -f1)
+          git clone --depth 1 "https://x-access-token:${TAP_TOKEN}@github.com/nanot1m/homebrew-tap.git" tap
+          sed -i '' -E "s/^  version \".*\"/  version \"$v\"/; s/^  sha256 \".*\"/  sha256 \"$sha\"/" tap/Casks/betterwm.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -am "betterwm $v" && git push

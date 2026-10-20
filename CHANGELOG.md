@@ -4,6 +4,65 @@ All notable changes to BetterWM. The format follows [Keep a Changelog](https://k
 
 Config (`config.conf`) and layout state (`state.json`) are versioned and migrated on load, so upgrading never loses settings or layouts.
 
+## [0.12.5] - 2026-10-19
+
+### Fixed
+- A cat that leapt through a notch portal could get stuck jumping on the spot afterwards: the leap had no end condition it could meet. It now lands back in its stride as soon as it is clear of the notch.
+
+## [0.12.4] - 2026-10-19
+
+### Changed
+- Cats use the whole sprite pack: five sleeping poses picked per nap (lazy cats sprawl), paw licking and both grooming swipes, a standing tail-wag for watching things, paw swipes at the pointer when they catch it and at a portal before poking into it, rearing up on hind legs when the pointer hovers right over them, a meow on the first pet, a happy jump on the third, a hiss when fed up or cornered in a chase, a yawn on waking, a leap through the notch portals, scratching when bored, and a meal by the battery icon when the charger goes in after the battery ran low. Frame counts are read from the sheet, and a sheet missing an extra animation falls back to the nearest core one.
+- Cats notice the bar: when you switch desktops the awake ones glance at the new chip and a playful one trots toward it; a low battery makes them huddle by the battery icon; a busy machine makes them sit and stare at the gauges. Before visiting another cat, a cat now stops and looks at it first. With three or more cats one sometimes leads the others in a line. Playful cats poke their head into a notch portal and back a few times before going through. They are sleepier after lunch and livelier in the morning.
+
+### Fixed
+- After a desktop switch the focus ring could end up beneath other windows: it was ordered under its window before that window was raised and before hidden apps came back. The ring is re-ordered once those settle.
+
+## [0.12.3] - 2026-10-19
+
+### Changed
+- Switching to the desktop that is already active (its hotkey, chip or menu item) cycles focus through its windows instead of doing nothing.
+
+## [0.12.2] - 2026-10-19
+
+### Changed
+- The Settings window follows System Settings: a sidebar of sections (General, Tiling, Focus Ring, Status Bar, Widgets, Cats, Apps, Hotkeys) and grouped rows with a plain title, a one-line explanation and the control on the right; switches instead of checkboxes; resizable. All settings and the import/export/save flow are unchanged.
+
+### Added
+- Documentation in `docs/`: getting started, concepts, actions and hotkeys, a full settings reference, status bar, cats, troubleshooting and internals.
+
+## [0.12.1] - 2026-10-19
+
+### Fixed
+- A config reload or any setting change folded on-demand desktops (5 and up) back into the last configured one, moving their windows there. The configured count is now a minimum; extra desktops go away only once empty.
+
+### Added
+- The active workspace of each desktop is remembered and restored at launch.
+
+### Removed
+- The workspace count setting (`virtualWorkspaces`): desktops are created on demand and trimmed when empty, so a fixed number served no purpose. The key is accepted and ignored.
+- The "glow underneath" focus ring style (`focusRingStyle`); the ring is always an outline. The key is accepted and ignored.
+
+### Changed
+- New defaults for fresh installs: status bar on with a black background, white text and orange accents, keyboard/Wi-Fi/battery/clock/menu widgets, app-only window title, 32pt bar with 24pt padding, orange focus ring (6pt, 24pt radius) with a teal ring for floating windows, auto-tiling off. Existing configs are untouched.
+- Switch to Desktop and Send to Desktop list all nine desktops; ones that do not exist yet are marked (new) and created when chosen.
+- The settings window no longer puts the cursor into the first text field when it opens or when you switch tabs.
+- The menu is grouped into Window, Screen, Desktops, Tiling and BetterWM sections, with the diagnostics items in a submenu.
+- Menu items, including the Move, Switch to Desktop and Send to Desktop submenus, show the hotkeys you configured instead of made-up ⌘ shortcuts that never worked from the menu bar.
+
+## [0.12.0] - 2026-10-19
+
+### Added
+- Homebrew tap: `brew install --cask nanot1m/tap/betterwm`, then clear the quarantine flag as for a downloaded zip. The release workflow updates the cask on every tag.
+
+### Removed
+- The native macOS Spaces mode (`workspaces = native`). Virtual workspaces are the only mode now; the `workspaces` config key is accepted and ignored, so older files load unchanged. Gone with it: synthetic Dock-swipe Space switching, the SkyLight window-move bridge vendored from WhichSpace, the title-bar-drag fallback for moving windows between Spaces, and the native/virtual migrations.
+
+## [0.11.20] - 2026-10-19
+
+### Fixed
+- Unplugging a monitor left things in a mess: windows parked in the old screen's corner were pulled onto the remaining screen and re-parked in a loop, floating windows came back with the old screen's size, and windows of apps that had been hidden for a while were dropped from their grid when unhidden because the two-second read grace had long expired. Frames remembered on a vanished screen are now fitted to the current one, re-parking gives up after three attempts, and the grace window is kept open for as long as a window is carried for a known reason. When a tracked window does leave the snapshot the log now records why.
+
 ## [0.11.19] - 2026-10-19
 
 ### Fixed

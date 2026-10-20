@@ -16,8 +16,8 @@ final class StatusBar {
     var onReorderDesktop: ((Int, Int) -> Void)?
     /// The menu widget was clicked; the app pops its menu at the given view.
     var onMenuRequested: ((NSView) -> Void)?
-    var desktopCount: () -> Int = { Spaces.desktops().count }
-    var currentDesktop: () -> Int? = { Spaces.currentDesktopIndex() }
+    var desktopCount: () -> Int = { 0 }
+    var currentDesktop: () -> Int? = { nil }
     var desktopApps: () -> [Int: [(pid: pid_t, windows: Int)]] = { [:] }
     /// While the user drags a window the bar stays as it is; any work on the main thread stalls the event tap.
     var isInteracting: () -> Bool = { false }
@@ -337,6 +337,9 @@ final class BarView: NSView {
     /// One container per right-side widget; `apply` arranges them in the configured order.
     private var widgetViews: [Config.BarWidget: NSStackView] = [:]
     private var chips: [ChipView] = []
+    private var lastDesktop: Int?
+    private var warnedBatteryLow = false
+    private var lastLoadReaction = Date.distantPast
     private var leftLeading: NSLayoutConstraint!
     private var leftTrailing: NSLayoutConstraint!
     private var rightTrailing: NSLayoutConstraint!
@@ -575,6 +578,33 @@ final class BarView: NSView {
         }
         show(.clock, m.clock != nil)
         clockLabel.stringValue = m.clock ?? ""
+        notifyCats(m)
+    }
+
+    /// Hands the cats the things worth reacting to: a new active desktop, a low battery, a busy machine.
+    private func notifyCats(_ m: Model) {
+        guard !cat.isHidden else { return }
+        if let current = m.current, current != lastDesktop {
+            if lastDesktop != nil, chips.indices.contains(current) {
+                cat.react(.desktopSwitched(towardX: chips[current].convert(chips[current].bounds, to: cat).midX))
+            }
+            lastDesktop = current
+        }
+        if let b = m.battery {
+            if b.percent <= 15, !b.charging, !warnedBatteryLow, let w = widgetViews[.battery], !w.isHidden {
+                warnedBatteryLow = true
+                cat.react(.batteryLow(x: w.convert(w.bounds, to: cat).midX))
+            } else if warnedBatteryLow, b.charging, let w = widgetViews[.battery] {
+                warnedBatteryLow = false
+                cat.react(.charging(x: w.convert(w.bounds, to: cat).midX))
+            } else if b.percent > 20 {
+                warnedBatteryLow = false
+            }
+        }
+        if let load = m.cpu, load > 0.8, Date().timeIntervalSince(lastLoadReaction) > 120 {
+            lastLoadReaction = Date()
+            cat.react(.load)
+        }
     }
 
     /// The dropped chip's new index is the number of other visible chips whose centre lies left of the drop point.
